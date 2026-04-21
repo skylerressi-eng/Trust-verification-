@@ -1,4 +1,5 @@
-import { Shield, Cpu, Lock, Users, Ban, AlertTriangle, Layers, Zap, CheckCircle2, XCircle, Code2 } from 'lucide-react'
+import { Shield, Cpu, Lock, AlertTriangle, Layers, Zap, CheckCircle2, XCircle, Code2 } from 'lucide-react'
+import { LayerDiagram, LoginSequenceDiagram, TrustAggregationDiagram } from '../components/Diagrams'
 
 export default function Architecture() {
   return (
@@ -59,6 +60,7 @@ export default function Architecture() {
         {/* 2. Layers */}
         <Section id="layers" icon={<Layers className="w-5 h-5" />} title="2. Core Architecture">
           <p>The system is organized as four cooperating layers:</p>
+          <LayerDiagram />
 
           <ArchLayer num="01" title="Client (device)" tone="green">
             <ul>
@@ -113,6 +115,9 @@ export default function Architecture() {
             <li>Social vouching: existing high-trust users sign a vouch (their trust is staked)</li>
           </ul>
 
+          <h3>Merkle-aggregated attestations</h3>
+          <TrustAggregationDiagram />
+
           <h3>How trust is stored without exposing identity</h3>
           <p>
             The user's device keeps a Merkle tree of signed attestations. The leaves are never revealed;
@@ -139,6 +144,7 @@ export default function Architecture() {
         {/* 4. Login */}
         <Section id="login" icon={<Cpu className="w-5 h-5" />} title="4. No-CAPTCHA Login">
           <p>Traditional: email + password + "click all traffic lights" + 2FA + session cookie.</p>
+          <LoginSequenceDiagram />
           <p><strong>TrustNet:</strong></p>
           <ol className="list-decimal pl-6 space-y-2">
             <li>Service sends a 32-byte random <code>challenge</code>.</li>

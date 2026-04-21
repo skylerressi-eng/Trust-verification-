@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Shield, Terminal, LayoutDashboard, BookOpen } from 'lucide-react'
+import { Shield, Terminal, LayoutDashboard, BookOpen, FlaskConical } from 'lucide-react'
 import { useTrust } from '../store/trustStore'
 
 export default function Navbar() {
@@ -34,6 +34,7 @@ export default function Navbar() {
         {/* Nav links */}
         <div className="hidden sm:flex items-center gap-1">
           {link('/architecture', 'Architecture', <BookOpen className="w-3.5 h-3.5" />)}
+          {link('/playground',   'Playground',   <FlaskConical className="w-3.5 h-3.5" />)}
           {link('/login',        'Login Demo',   <Terminal  className="w-3.5 h-3.5" />)}
           {registered && link('/dashboard', 'Dashboard', <LayoutDashboard className="w-3.5 h-3.5" />)}
         </div>

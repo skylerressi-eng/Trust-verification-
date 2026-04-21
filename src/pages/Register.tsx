@@ -122,12 +122,14 @@ export default function Register() {
       <div className="max-w-4xl mx-auto">
 
         {/* Header */}
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-trust-900/30 border border-trust-700/40 text-trust-300 text-xs font-mono mb-4">
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-trust-900/30 border border-trust-700/40 text-trust-300 text-xs font-mono mb-6">
             <ShieldCheck className="w-3 h-3" /> REGISTRATION · NO EMAIL REQUIRED
           </div>
-          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-slate-100">Create your anonymous identity</h1>
-          <p className="mt-3 text-slate-400">Everything happens in this browser tab. Nothing is sent to a server that could identify you.</p>
+          <h1 className="text-5xl sm:text-6xl font-black tracking-tight text-slate-100">
+            Create your <span className="bg-gradient-to-r from-trust-400 to-emerald-300 bg-clip-text text-transparent">anonymous identity</span>
+          </h1>
+          <p className="mt-4 text-slate-400 text-lg max-w-xl mx-auto">Everything happens in this browser tab. Nothing is sent to a server that could identify you.</p>
         </div>
 
         {/* Stepper */}

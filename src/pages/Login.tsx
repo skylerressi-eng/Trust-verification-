@@ -95,8 +95,10 @@ export default function Login() {
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-trust-900/30 border border-trust-700/40 text-trust-300 text-xs font-mono mb-4">
             <Terminal className="w-3 h-3" /> LOGIN DEMO · NO CAPTCHA · NO PASSWORD
           </div>
-          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-slate-100">
-            Watch login happen <span className="text-trust-400">without you</span>
+          <h1 className="text-5xl sm:text-6xl font-black tracking-tight text-slate-100">
+            Watch login happen
+            <br />
+            <span className="bg-gradient-to-r from-trust-400 to-emerald-300 bg-clip-text text-transparent">without you</span>
           </h1>
           <p className="mt-3 text-slate-400 max-w-2xl mx-auto">
             This simulates a third-party service (say, a forum) asking you to log in. No email, no password, no CAPTCHA,
