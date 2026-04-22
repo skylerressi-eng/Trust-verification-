@@ -313,7 +313,13 @@
   animation: glowPulse 2s ease-in-out infinite;
 }
 
-/* ——— Hex grid decorative bg ——— */
+/* ——— Face scanner sweep ——— */
+@keyframes faceScanner {
+  0%   { top: 0; }
+  100% { top: calc(100% - 2px); }
+}
+.face-scan-line { animation: faceScanner 1.4s ease-in-out infinite alternate; }
+
 .hex-bg {
   background-color: transparent;
   background-image:

@@ -9,6 +9,8 @@ import Dashboard from './pages/Dashboard'
 import Architecture from './pages/Architecture'
 import Playground from './pages/Playground'
 import SybilDemo from './pages/SybilDemo'
+import Subscribe from './pages/Subscribe'
+import TrustBrowser from './pages/TrustBrowser'
 
 export default function App() {
   const { registered } = useTrust()
@@ -27,6 +29,8 @@ export default function App() {
           <Route path="/playground"   element={<Playground />} />
           <Route path="/sybil"        element={<SybilDemo />} />
           <Route path="/dashboard"    element={registered ? <Dashboard /> : <Navigate to="/register" />} />
+          <Route path="/subscribe"    element={registered ? <Subscribe /> : <Navigate to="/register" />} />
+          <Route path="/browser"      element={registered ? <TrustBrowser /> : <Navigate to="/register" />} />
           <Route path="*"             element={<Navigate to="/" />} />
         </Routes>
       </div>

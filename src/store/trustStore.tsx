@@ -12,6 +12,16 @@ export interface TrustAttestation {
   issuer: string
 }
 
+export type SocialPlatform = 'twitter' | 'github' | 'discord' | 'reddit' | 'linkedin'
+
+export interface LinkedAccounts {
+  twitter:  boolean
+  github:   boolean
+  discord:  boolean
+  reddit:   boolean
+  linkedin: boolean
+}
+
 export interface TrustState {
   identity: TrustIdentity | null
   serializedKeys: SerializedKeyPair | null
@@ -21,45 +31,69 @@ export interface TrustState {
   humanityVerified: boolean
   powHash: string | null
   registered: boolean
-  // whether the in-memory _keyPair has been re-imported after a page reload
   keyReady: boolean
+  // New fields (back-filled from defaultState for existing users)
+  faceScanDone:   boolean
+  linkedAccounts: LinkedAccounts
+  subscribed:     boolean
+  displayName:    string
 }
 
 interface TrustContextValue extends TrustState {
-  setIdentity: (id: TrustIdentity, keys: SerializedKeyPair) => void
-  addProof: (p: ZKProof) => void
-  addAttestation: (a: TrustAttestation) => void
-  setPowHash: (h: string) => void
+  setIdentity:         (id: TrustIdentity, keys: SerializedKeyPair) => void
+  addProof:            (p: ZKProof) => void
+  addAttestation:      (a: TrustAttestation) => void
+  setPowHash:          (h: string) => void
   setHumanityVerified: (v: boolean) => void
-  setRegistered: (v: boolean) => void
-  reset: () => void
+  setRegistered:       (v: boolean) => void
+  setFaceScanDone:     () => void
+  linkAccount:         (platform: SocialPlatform) => void
+  setSubscribed:       (v: boolean) => void
+  setDisplayName:      (name: string) => void
+  reset:               () => void
 }
 
 const STORAGE_KEY = 'trustnet_state_v1'
 
+const DEFAULT_LINKED: LinkedAccounts = {
+  twitter: false, github: false, discord: false, reddit: false, linkedin: false,
+}
+
 const defaultState: TrustState = {
-  identity: null,
-  serializedKeys: null,
-  proofs: [],
-  attestations: [],
-  trustScore: 0,
+  identity:        null,
+  serializedKeys:  null,
+  proofs:          [],
+  attestations:    [],
+  trustScore:      0,
   humanityVerified: false,
-  powHash: null,
-  registered: false,
-  keyReady: false,
+  powHash:         null,
+  registered:      false,
+  keyReady:        false,
+  faceScanDone:    false,
+  linkedAccounts:  DEFAULT_LINKED,
+  subscribed:      false,
+  displayName:     '',
 }
 
 function loadState(): TrustState {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    if (raw) return { ...defaultState, ...JSON.parse(raw), keyReady: false }
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      return {
+        ...defaultState,
+        ...parsed,
+        // Ensure nested objects are merged, not replaced
+        linkedAccounts: { ...DEFAULT_LINKED, ...(parsed.linkedAccounts ?? {}) },
+        keyReady: false,
+      }
+    }
   } catch { /* ignore */ }
   return defaultState
 }
 
 function saveState(s: TrustState) {
   try {
-    // Don't persist the transient keyReady flag
     const { keyReady: _kr, ...toSave } = s
     localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave))
   } catch { /* ignore */ }
@@ -70,14 +104,11 @@ const TrustContext = createContext<TrustContextValue | null>(null)
 export function TrustProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<TrustState>(loadState)
 
-  // On first mount, if serialized keys exist in localStorage, re-import them
-  // into the in-memory _keyPair so signChallenge() works after a page reload.
   useEffect(() => {
     if (state.serializedKeys && !state.keyReady) {
       importKeyPair(state.serializedKeys)
         .then(() => setState(prev => ({ ...prev, keyReady: true })))
         .catch(() => {
-          // Keys corrupted — clear everything so the user can re-register
           localStorage.removeItem(STORAGE_KEY)
           setState(defaultState)
         })
@@ -105,9 +136,29 @@ export function TrustProvider({ children }: { children: ReactNode }) {
         update({ identity, serializedKeys, keyReady: true }),
       addProof:   (p) => setState(prev => ({ ...prev, proofs: [...prev.proofs, p] })),
       addAttestation,
-      setPowHash:           (powHash)          => update({ powHash }),
-      setHumanityVerified:  (humanityVerified)  => update({ humanityVerified }),
-      setRegistered:        (registered)        => update({ registered }),
+      setPowHash:           (powHash)         => update({ powHash }),
+      setHumanityVerified:  (humanityVerified) => update({ humanityVerified }),
+      setRegistered:        (registered)       => update({ registered }),
+      setFaceScanDone: () => update({ faceScanDone: true }),
+      setDisplayName:  (displayName) => update({ displayName }),
+      setSubscribed:   (subscribed)  => update({ subscribed }),
+      linkAccount: (platform) =>
+        setState(prev => {
+          if (prev.linkedAccounts[platform]) return prev
+          const attestation: TrustAttestation = {
+            id: crypto.randomUUID(),
+            action: `social_linked_${platform}`,
+            delta: 10,
+            timestamp: Date.now(),
+            issuer: 'trustnet-social-v1',
+          }
+          return {
+            ...prev,
+            linkedAccounts: { ...prev.linkedAccounts, [platform]: true },
+            attestations: [...prev.attestations, attestation],
+            trustScore: Math.min(100, prev.trustScore + 10),
+          }
+        }),
       reset: () => { localStorage.removeItem(STORAGE_KEY); setState(defaultState) },
     }}>
       {children}

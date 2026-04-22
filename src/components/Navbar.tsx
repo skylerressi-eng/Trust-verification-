@@ -1,19 +1,24 @@
 import { Link, useLocation } from 'react-router-dom'
 import { useState } from 'react'
-import { Shield, Terminal, LayoutDashboard, BookOpen, FlaskConical, Bot, Menu, X } from 'lucide-react'
+import {
+  Shield, Terminal, LayoutDashboard, BookOpen, FlaskConical,
+  Bot, Menu, X, Globe, CreditCard,
+} from 'lucide-react'
 import { useTrust } from '../store/trustStore'
 
 export default function Navbar() {
   const { pathname } = useLocation()
-  const { registered, trustScore, humanityVerified } = useTrust()
+  const { registered, trustScore, humanityVerified, subscribed, displayName } = useTrust()
   const [mobileOpen, setMobileOpen] = useState(false)
 
   const navItems = [
-    { to: '/architecture', label: 'Architecture', icon: <BookOpen className="w-3.5 h-3.5" /> },
+    { to: '/architecture', label: 'Architecture', icon: <BookOpen     className="w-3.5 h-3.5" /> },
     { to: '/playground',   label: 'Playground',   icon: <FlaskConical className="w-3.5 h-3.5" /> },
-    { to: '/sybil',        label: 'Sybil Demo',   icon: <Bot className="w-3.5 h-3.5" /> },
-    { to: '/login',        label: 'Login Demo',   icon: <Terminal className="w-3.5 h-3.5" /> },
+    { to: '/sybil',        label: 'Sybil Demo',   icon: <Bot          className="w-3.5 h-3.5" /> },
+    { to: '/login',        label: 'Login Demo',   icon: <Terminal     className="w-3.5 h-3.5" /> },
     ...(registered ? [{ to: '/dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-3.5 h-3.5" /> }] : []),
+    ...(registered && !subscribed ? [{ to: '/subscribe', label: 'Subscribe', icon: <CreditCard className="w-3.5 h-3.5" /> }] : []),
+    ...(subscribed ? [{ to: '/browser', label: 'Trust Browser', icon: <Globe className="w-3.5 h-3.5" /> }] : []),
   ]
 
   const navLink = (to: string, label: string, icon: React.ReactNode, onClick?: () => void) => (
@@ -53,13 +58,15 @@ export default function Navbar() {
             {navItems.map(n => navLink(n.to, n.label, n.icon))}
           </div>
 
-          {/* Right: trust badge + CTA + mobile toggle */}
+          {/* Right: identity badge + CTA + hamburger */}
           <div className="flex items-center gap-2">
             {humanityVerified && (
               <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium"
                    style={{ background: 'linear-gradient(135deg, rgba(5,46,22,0.5), rgba(8,14,26,0.5))', border: '1px solid rgba(34,197,94,0.3)' }}>
                 <span className="w-1.5 h-1.5 rounded-full bg-trust-400 animate-pulse" />
-                <span className="text-trust-300">Trust {trustScore}</span>
+                <span className="text-trust-300">
+                  {displayName ? `@${displayName}` : `Trust ${trustScore}`}
+                </span>
               </div>
             )}
 
@@ -69,7 +76,6 @@ export default function Navbar() {
               <Link to="/register" className="btn-primary py-1.5 px-4 text-sm hidden sm:block">Get Started</Link>
             )}
 
-            {/* Mobile hamburger */}
             <button
               onClick={() => setMobileOpen(o => !o)}
               className="md:hidden p-2 rounded-xl text-slate-400 hover:text-slate-100 hover:bg-white/[0.05] transition-colors"
