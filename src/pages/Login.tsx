@@ -22,19 +22,21 @@ const PHASES: Phase[] = [
 ]
 
 export default function Login() {
-  const { identity, registered, trustScore, humanityVerified } = useTrust()
+  const { identity, registered, trustScore, humanityVerified, keyReady } = useTrust()
   const [phase, setPhase] = useState<number>(-1)
   const [challenge, setChallenge] = useState<string>('')
   const [sigHex, setSigHex] = useState<string>('')
   const [proofId, setProofId] = useState<string>('')
   const [sigValid, setSigValid] = useState<boolean | null>(null)
   const [busy, setBusy] = useState(false)
+  const [sigError, setSigError] = useState(false)
 
   async function runLogin() {
     if (!identity) return
     setBusy(true)
     setPhase(0)
     setSigValid(null)
+    setSigError(false)
 
     // Phase 0: service issues challenge
     const challengeBytes = crypto.getRandomValues(new Uint8Array(32))
@@ -45,7 +47,13 @@ export default function Login() {
     // Phase 1: sign
     setPhase(1)
     const signed = await signChallenge(chal)
-    if (!signed) { setBusy(false); return }
+    if (!signed) {
+      // keyReady should prevent this, but guard anyway
+      setSigError(true)
+      setBusy(false)
+      setPhase(-1)
+      return
+    }
     setSigHex(signed.signature)
     await delay(700)
 
@@ -88,6 +96,18 @@ export default function Login() {
     )
   }
 
+  if (!keyReady) {
+    return (
+      <div className="pt-28 pb-20 px-4 min-h-screen">
+        <div className="max-w-lg mx-auto text-center card">
+          <Loader2 className="w-10 h-10 text-trust-400 mx-auto mb-4 animate-spin" />
+          <h2 className="text-xl font-bold text-slate-100 mb-2">Restoring keypair…</h2>
+          <p className="text-slate-400 text-sm">Re-importing your device key from secure storage.</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="pt-28 pb-20 px-4 relative z-10">
       <div className="max-w-4xl mx-auto">
@@ -116,10 +136,16 @@ export default function Login() {
           </div>
 
           <div className="p-6 min-h-[380px] bg-void-950/40">
-            {phase < 0 && (
+            {phase < 0 && !sigError && (
               <div className="text-slate-400 space-y-1">
                 <div><span className="text-trust-400">$</span> trustnet login --service forum.example.com</div>
                 <div className="text-slate-600 text-xs mt-2">Press <kbd className="px-1.5 py-0.5 rounded bg-void-800 border border-void-700 text-slate-300">Run</kbd> to simulate a round-trip login.</div>
+              </div>
+            )}
+            {sigError && (
+              <div className="flex items-center gap-2 text-red-400 text-sm">
+                <X className="w-4 h-4" />
+                Signing failed — private key not available. Try refreshing the page.
               </div>
             )}
 

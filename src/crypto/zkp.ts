@@ -84,7 +84,11 @@ export async function verifyProof(proof: ZKProof, publicKeyHex: string): Promise
 }
 
 // Proof-of-Work for Sybil resistance: find nonce such that SHA256(seed+nonce) starts with `difficulty` zeros
-export async function solvePoW(seed: string, difficulty: number): Promise<{ nonce: number; hash: string; duration: number }> {
+export async function solvePoW(
+  seed: string,
+  difficulty: number,
+  onProgress?: (nonce: number) => void,
+): Promise<{ nonce: number; hash: string; duration: number }> {
   const prefix = '0'.repeat(difficulty)
   let nonce = 0
   const start = performance.now()
@@ -95,8 +99,11 @@ export async function solvePoW(seed: string, difficulty: number): Promise<{ nonc
       return { nonce, hash, duration: Math.round(performance.now() - start) }
     }
     nonce++
-    // Yield to UI every 500 iterations so the browser doesn't freeze
-    if (nonce % 500 === 0) await new Promise(r => setTimeout(r, 0))
+    // Yield to UI every 200 iterations and report progress
+    if (nonce % 200 === 0) {
+      onProgress?.(nonce)
+      await new Promise(r => setTimeout(r, 0))
+    }
   }
 }
 

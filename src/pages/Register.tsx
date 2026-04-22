@@ -65,21 +65,11 @@ export default function Register() {
   const [copied, setCopied] = useState(false)
 
   const identity = trust.identity
-  const [powInfo, setPowInfo]     = useState<{ nonce: number; hash: string; duration: number } | null>(null)
+  const [powInfo, setPowInfo]         = useState<{ nonce: number; hash: string; duration: number } | null>(null)
   const [powProgress, setPowProgress] = useState(0)
-  const [ageCommit, setAgeCommit] = useState<string | null>(null)
-  const [age, setAge]             = useState('25')
-  const [credProof, setCredProof] = useState<ZKProof | null>(null)
-
-  // Track PoW nonce count for progress display
-  const powNonceRef = useRef(0)
-  useEffect(() => {
-    if (!busy || step !== 1) return
-    const id = setInterval(() => {
-      setPowProgress(powNonceRef.current)
-    }, 100)
-    return () => clearInterval(id)
-  }, [busy, step])
+  const [ageCommit, setAgeCommit]     = useState<string | null>(null)
+  const [age, setAge]                 = useState('25')
+  const [credProof, setCredProof]     = useState<ZKProof | null>(null)
 
   async function doGenerate() {
     setBusy(true)
@@ -101,12 +91,8 @@ export default function Register() {
     if (!identity) return
     setBusy(true)
     setPowProgress(0)
-    powNonceRef.current = 0
     try {
-      // Patch into solvePoW progress via a callback-free approach:
-      // We monkey-patch sha256 inline calls aren't feasible, so we just show elapsed nonce via interval.
-      const result = await solvePoW(identity.publicKeyHex, 4)
-      powNonceRef.current = result.nonce
+      const result = await solvePoW(identity.publicKeyHex, 4, (n) => setPowProgress(n))
       setPowInfo(result)
       trust.setPowHash(result.hash)
 

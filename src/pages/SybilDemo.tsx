@@ -42,7 +42,6 @@ export default function SybilDemo() {
   const [speed, setSpeed]         = useState(900)          // ms between attempts
   const [difficulty, setDifficulty] = useState(3)          // PoW zero prefix count
   const [stats, setStats]         = useState({ total: 0, blocked: 0, passed: 0 })
-  const [difficultyAuto, setDifficultyAuto] = useState(true)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const listRef = useRef<HTMLDivElement>(null)
 
@@ -66,9 +65,16 @@ export default function SybilDemo() {
     const ip = IPS[Math.floor(Math.random() * IPS.length)] + Math.floor(Math.random() * 255)
 
     let powHash: string | null = null
+    // Legit users and some sybil-farm entries show a real PoW hash
     if (kind === 'legit' || (kind === 'sybil-farm' && !blocked)) {
-      const h = await sha256(keyFrag + nonce)
-      powHash = h
+      // Simulate a solved hash by finding a real prefix-matching digest
+      const prefix = '0'.repeat(Math.max(1, difficulty - 1))
+      let n = nonce
+      for (let i = 0; i < 5000; i++) {
+        const h = await sha256(keyFrag + n)
+        if (h.startsWith(prefix)) { powHash = h; break }
+        n++
+      }
     }
 
     const reasons = BLOCK_REASONS[kind]
@@ -178,7 +184,7 @@ export default function SybilDemo() {
             <label className="text-xs font-mono text-slate-500">PoW difficulty</label>
             <select
               value={difficulty}
-              onChange={e => { setDifficulty(Number(e.target.value)); setDifficultyAuto(false) }}
+              onChange={e => setDifficulty(Number(e.target.value))}
               className="bg-void-900 border border-void-700 rounded-lg px-3 py-1.5 text-sm text-slate-300 focus:outline-none focus:border-trust-500/50"
             >
               {[2,3,4,5].map(d => (

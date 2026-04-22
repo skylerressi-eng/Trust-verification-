@@ -77,7 +77,7 @@ interface ProofResult {
 }
 
 export default function Playground() {
-  const { registered, identity, trustScore, humanityVerified } = useTrust()
+  const { registered, identity, trustScore, humanityVerified, keyReady } = useTrust()
   const [selectedService, setSelectedService] = useState<string>('forum')
   const [running, setRunning] = useState(false)
   const [results, setResults] = useState<ProofResult[]>([])
@@ -153,6 +153,18 @@ export default function Playground() {
           <Link to="/register" className="btn-primary inline-flex items-center gap-2">
             Register <ArrowRight className="w-4 h-4" />
           </Link>
+        </div>
+      </div>
+    )
+  }
+
+  if (!keyReady) {
+    return (
+      <div className="pt-28 pb-20 px-4 min-h-screen">
+        <div className="max-w-lg mx-auto text-center card">
+          <Loader2 className="w-10 h-10 text-trust-400 mx-auto mb-4 animate-spin" />
+          <h2 className="text-xl font-bold text-slate-100 mb-2">Restoring keypair…</h2>
+          <p className="text-slate-400 text-sm">Re-importing your private key from secure browser storage.</p>
         </div>
       </div>
     )
