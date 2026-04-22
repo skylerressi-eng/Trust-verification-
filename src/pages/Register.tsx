@@ -342,7 +342,7 @@ export default function Register() {
 
               <EntropyTicker active={busy} />
 
-              <button onClick={doCommit} disabled={busy || Number(age) < 18 || Number(age) > 99}
+              <button onClick={doCommit} disabled={busy || isNaN(Number(age)) || Number(age) < 18 || Number(age) > 99}
                       className="btn-primary w-full flex items-center justify-center gap-2 mt-4">
                 {busy ? <><Loader2 className="w-4 h-4 animate-spin" /> Committing…</> : <>Commit + generate range proof <ArrowRight className="w-4 h-4" /></>}
               </button>

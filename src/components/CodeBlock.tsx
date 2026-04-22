@@ -17,16 +17,27 @@ function highlight(code: string): string {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
 
-  // Block comments, line comments, strings
+  // Block comments, line comments, strings, numbers
   out = out.replace(/\/\*[\s\S]*?\*\//g, m => `<span class="tok-c">${m}</span>`)
   out = out.replace(/(\/\/[^\n]*)/g,     (_, m) => `<span class="tok-c">${m}</span>`)
   out = out.replace(/(['"`])(?:\\.|(?!\1).)*\1/g, m => `<span class="tok-s">${m}</span>`)
   out = out.replace(/\b(\d+(?:\.\d+)?)\b/g, '<span class="tok-n">$1</span>')
-  // Keywords
-  out = out.replace(/\b([A-Za-z_][A-Za-z0-9_]*)\b/g, (_m, word) =>
-    KEYWORDS.has(word) ? `<span class="tok-k">${word}</span>` : word
-  )
-  return out
+
+  // Keywords: only in "raw" text nodes — text between HTML tags but not inside an existing span.
+  // Split on tag boundaries so we never mutate span attributes (which contain "class", "null" etc.)
+  const parts = out.split(/(<[^>]*>)/g)
+  let depth = 0
+  for (let i = 0; i < parts.length; i++) {
+    const p = parts[i]
+    if (p.startsWith('<')) {
+      depth += p.startsWith('</') ? -1 : 1
+    } else if (depth === 0) {
+      parts[i] = p.replace(/\b([A-Za-z_][A-Za-z0-9_]*)\b/g, (_m, word) =>
+        KEYWORDS.has(word) ? `<span class="tok-k">${word}</span>` : word
+      )
+    }
+  }
+  return parts.join('')
 }
 
 export default function CodeBlock({ code, label }: { code: string; label?: string }) {

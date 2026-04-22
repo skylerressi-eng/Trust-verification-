@@ -97,50 +97,52 @@ export default function Playground() {
     const out: ProofResult[] = []
     let allOk = true
 
-    for (const pred of svc.predicates) {
-      const start = performance.now()
+    try {
+      for (const pred of svc.predicates) {
+        const start = performance.now()
 
-      // Simulated witness for each predicate type
-      const witness =
-        pred.type === 'trust-threshold' ? String(trustScore) :
-        pred.type === 'humanity'        ? 'verified_human' :
-        pred.type === 'age-range'       ? '25' :
-        pred.type === 'no-prior-ban'    ? 'clean_record' :
-        'member_verified'
+        const witness =
+          pred.type === 'trust-threshold' ? String(trustScore) :
+          pred.type === 'humanity'        ? 'verified_human' :
+          pred.type === 'age-range'       ? '25' :
+          pred.type === 'no-prior-ban'    ? 'clean_record' :
+          'member_verified'
 
-      const p = await generateProof(pred.type, witness, identity.publicKeyHex, String(pred.min ?? ''))
-      const ok = await verifyProof(p, identity.publicKeyHex)
+        const p = await generateProof(pred.type, witness, identity.publicKeyHex, String(pred.min ?? ''))
+        const ok = await verifyProof(p, identity.publicKeyHex)
 
-      // Enforce threshold if set
-      let passes = ok
-      if (pred.type === 'trust-threshold' && pred.min !== undefined) {
-        passes = passes && trustScore >= pred.min
+        let passes = ok
+        if (pred.type === 'trust-threshold' && pred.min !== undefined) {
+          passes = passes && trustScore >= pred.min
+        }
+        if (pred.type === 'humanity' && !humanityVerified) passes = false
+        if (!passes) allOk = false
+
+        out.push({
+          predicate: pred.label,
+          type: pred.type,
+          commitment: p.commitment,
+          challenge: p.challenge,
+          response: p.response,
+          verified: passes,
+          duration: Math.round(performance.now() - start),
+        })
+
+        setResults([...out])
+        await new Promise(r => setTimeout(r, 400))
       }
-      if (pred.type === 'humanity' && !humanityVerified) passes = false
 
-      if (!passes) allOk = false
-
-      out.push({
-        predicate: pred.label,
-        type: pred.type,
-        commitment: p.commitment,
-        challenge: p.challenge,
-        response: p.response,
-        verified: passes,
-        duration: Math.round(performance.now() - start),
-      })
-
-      setResults([...out])
-      await new Promise(r => setTimeout(r, 400))
+      setSessionGranted(allOk)
+      if (allOk) {
+        const tokBytes = crypto.getRandomValues(new Uint8Array(16))
+        const tok = Array.from(tokBytes).map(b => b.toString(16).padStart(2, '0')).join('')
+        setSessionToken(tok)
+      }
+    } catch {
+      setSessionGranted(false)
+    } finally {
+      setRunning(false)
     }
-
-    setSessionGranted(allOk)
-    if (allOk) {
-      const tokBytes = crypto.getRandomValues(new Uint8Array(16))
-      const tok = Array.from(tokBytes).map(b => b.toString(16).padStart(2, '0')).join('')
-      setSessionToken(tok)
-    }
-    setRunning(false)
   }
 
   if (!registered) {

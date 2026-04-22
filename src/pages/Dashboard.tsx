@@ -108,7 +108,7 @@ function Sparkline({ values, height = 40 }: { values: number[]; height?: number 
         strokeLinejoin="round"
       />
       <circle
-        cx={(values.length - 1) / (values.length - 1) * w}
+        cx={w}
         cy={h - (values[values.length - 1] / max) * (h - 4)}
         r="3"
         fill="#4ade80"
@@ -125,7 +125,7 @@ export default function Dashboard() {
   const [cooldowns, setCooldowns]   = useState<Record<string, number>>({})
   const [busy, setBusy]             = useState<string | null>(null)
   const [copied, setCopied]         = useState(false)
-  const [scoreHistory, setScoreHistory] = useState<number[]>([0])
+  const [scoreHistory, setScoreHistory] = useState<number[]>([trustScore])
   const [tab, setTab]               = useState<'proofs' | 'attestations'>('attestations')
 
   // Keep a rolling history of trust score for sparkline
@@ -168,6 +168,8 @@ export default function Dashboard() {
       })
       setCooldowns(prev => ({ ...prev, [action.id]: Date.now() + action.cooldown }))
       toast('success', `+${action.delta} trust earned`, action.description)
+    } catch (e: unknown) {
+      toast('error', 'Action failed', e instanceof Error ? e.message : 'Try again.')
     } finally {
       setBusy(null)
     }
