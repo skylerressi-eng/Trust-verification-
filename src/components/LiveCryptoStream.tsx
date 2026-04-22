@@ -38,6 +38,7 @@ export default function LiveCryptoStream() {
         const bytes = crypto.getRandomValues(new Uint8Array(32))
         const hex = bufToHex(bytes.buffer)
         const hash = await sha256(hex + Date.now())
+        if (!runningRef.current) break
         const display = kind === 'entropy' ? hex : hash
 
         const texts: Record<Line['kind'], string> = {

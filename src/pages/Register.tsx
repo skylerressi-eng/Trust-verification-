@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   KeyRound, Cpu, ShieldCheck, Sparkles, Loader2, Check, ArrowRight,
@@ -24,8 +24,6 @@ const STEP_META = [
 // Mini live entropy ticker shown while crypto is running
 function EntropyTicker({ active }: { active: boolean }) {
   const [bytes, setBytes] = useState<string[]>([])
-  const running = useRef(active)
-  running.current = active
 
   useEffect(() => {
     if (!active) return
@@ -80,8 +78,8 @@ export default function Register() {
       trust.setIdentity(id, keys)
       toast('success', 'Keypair generated', 'Private key bound to this device.')
       setStep(1)
-    } catch (e: any) {
-      toast('error', 'Generation failed', String(e))
+    } catch (e: unknown) {
+      toast('error', 'Generation failed', e instanceof Error ? e.message : String(e))
     } finally {
       setBusy(false)
     }
@@ -103,8 +101,8 @@ export default function Register() {
 
       toast('success', 'Humanity proved', `PoW solved in ${result.duration}ms · nonce=${result.nonce}`)
       setStep(2)
-    } catch (e: any) {
-      toast('error', 'PoW failed', String(e))
+    } catch (e: unknown) {
+      toast('error', 'PoW failed', e instanceof Error ? e.message : String(e))
     } finally {
       setBusy(false)
     }
@@ -121,8 +119,8 @@ export default function Register() {
       trust.addAttestation({ id: crypto.randomUUID(), action: 'age_committed', delta: 10, timestamp: Date.now(), issuer: 'trustnet-verifier' })
       toast('success', 'Age commitment recorded', 'Range proof: age ∈ [18, 99]')
       setStep(3)
-    } catch (e: any) {
-      toast('error', 'Commit failed', String(e))
+    } catch (e: unknown) {
+      toast('error', 'Commit failed', e instanceof Error ? e.message : String(e))
     } finally {
       setBusy(false)
     }
@@ -139,8 +137,8 @@ export default function Register() {
       trust.setRegistered(true)
       toast('success', 'Identity active!', 'Your credential is live.')
       setStep(4)
-    } catch (e: any) {
-      toast('error', 'Issuance failed', String(e))
+    } catch (e: unknown) {
+      toast('error', 'Issuance failed', e instanceof Error ? e.message : String(e))
     } finally {
       setBusy(false)
     }

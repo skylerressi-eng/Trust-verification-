@@ -328,7 +328,7 @@ export default function Dashboard() {
                 <button
                   key={action.id}
                   onClick={() => earnTrust(action)}
-                  disabled={onCooldown || isBusy !== false}
+                  disabled={onCooldown || !!busy}
                   className={`relative text-left p-4 rounded-xl border transition-all duration-200 group
                     ${onCooldown || isBusy
                       ? 'border-void-800/40 bg-void-950/30 opacity-50 cursor-not-allowed'

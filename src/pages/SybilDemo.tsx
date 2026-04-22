@@ -106,7 +106,7 @@ export default function SybilDemo() {
       // Auto-adjust difficulty when attack rate spikes
       return { total, blocked: blocked_, passed }
     })
-  }, [])
+  }, [difficulty])
 
   useEffect(() => {
     if (!running) {
